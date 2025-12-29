@@ -28,7 +28,12 @@ from daily_news.collectors import RSSCollector
 from daily_news.config import settings
 from daily_news.delivery import EmailDelivery, SMSDelivery
 from daily_news.models import CollectionStats, NewsDigest, RankedArticle
-from daily_news.processing import ArticleDeduplicator, ClaudeRanker, TranslationService
+from daily_news.processing import (
+    ArticleDeduplicator,
+    ClaudeRanker,
+    SemanticDeduplicator,
+    TranslationService,
+)
 from daily_news.sources import load_sources
 from daily_news.storage import NewsDatabase
 
@@ -126,6 +131,26 @@ class NewsPipeline:
         self.stats.duration_seconds = time.time() - self.start_time
         self.db.save_collection_stats(self.stats)
 
+    def semantic_dedup(self, ranked_articles: list[RankedArticle]) -> list[RankedArticle]:
+        """Remove semantically duplicate articles from top stories.
+
+        Uses Claude to identify articles covering the same event and keeps
+        only the highest-scored article from each event cluster.
+        """
+        logger.info("Running semantic deduplication on top stories...")
+
+        try:
+            deduplicator = SemanticDeduplicator()
+            # Target slightly more than digest count to allow for SMS headlines
+            unique = deduplicator.deduplicate_top_stories(
+                ranked_articles, target_count=settings.digest_story_count + 5
+            )
+            logger.info(f"Semantic dedup: kept {len(unique)} unique events")
+            return unique
+        except ValueError as e:
+            logger.warning(f"Semantic deduplication unavailable: {e}")
+            return ranked_articles
+
     def create_digest(self, ranked_articles: list[RankedArticle]) -> NewsDigest:
         """Create news digest from ranked articles."""
         top_stories = ranked_articles[: settings.digest_story_count]
@@ -189,13 +214,16 @@ class NewsPipeline:
         # 4. Rank
         ranked = self.rank(unique)
 
-        # 5. Save
+        # 5. Semantic deduplication of top stories
+        top_unique = self.semantic_dedup(ranked)
+
+        # 6. Save all ranked articles (not just deduplicated)
         self.save(ranked)
 
-        # 6. Create digest
-        digest = self.create_digest(ranked)
+        # 7. Create digest from semantically deduplicated top stories
+        digest = self.create_digest(top_unique)
 
-        # 7. Deliver (unless skipped)
+        # 8. Deliver (unless skipped)
         if not skip_delivery:
             self.deliver_email(digest)
             self.deliver_sms(digest)

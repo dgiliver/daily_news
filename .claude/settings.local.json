@@ -13,7 +13,11 @@
       "Bash(pre-commit install)",
       "Bash(pre-commit install:*)",
       "Bash(pre-commit run:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix broken RSS feeds and add comprehensive pre-commit hooks\n\n- Replace 15 broken RSS feeds with working alternatives\n- Add pre-commit config with ruff, mypy, bandit, detect-secrets\n- Enhanced ruff configuration with additional lint rules\n- Fix all linting issues across codebase\n- Code formatting with ruff-format\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: broken RSS feeds and add comprehensive pre-commit hooks\n\n- Replace 15 broken RSS feeds with working alternatives\n- Add pre-commit config with ruff, mypy, bandit, detect-secrets\n- Enhanced ruff configuration with additional lint rules\n- Fix all linting issues across codebase\n- Code formatting with ruff-format\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(gh run list:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
