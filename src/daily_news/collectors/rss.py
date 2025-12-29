@@ -1,6 +1,7 @@
 """RSS feed collector with async support."""
 
 import asyncio
+import contextlib
 import logging
 from datetime import datetime
 from email.utils import parsedate_to_datetime
@@ -78,7 +79,7 @@ class RSSCollector(BaseCollector):
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 response = await client.head(source.url, follow_redirects=True)
-                return response.status_code < 400
+                return bool(response.status_code < 400)
         except Exception:
             return False
 
@@ -139,20 +140,14 @@ class RSSCollector(BaseCollector):
             # Parse published date
             published_at = None
             if "published_parsed" in entry and entry.published_parsed:
-                try:
+                with contextlib.suppress(TypeError, ValueError):
                     published_at = datetime(*entry.published_parsed[:6])
-                except (TypeError, ValueError):
-                    pass
             elif "updated_parsed" in entry and entry.updated_parsed:
-                try:
+                with contextlib.suppress(TypeError, ValueError):
                     published_at = datetime(*entry.updated_parsed[:6])
-                except (TypeError, ValueError):
-                    pass
             elif "published" in entry:
-                try:
+                with contextlib.suppress(TypeError, ValueError):
                     published_at = parsedate_to_datetime(entry.published)
-                except (TypeError, ValueError):
-                    pass
 
             # Extract image URL if available
             image_url = None

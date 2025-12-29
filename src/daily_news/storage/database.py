@@ -3,13 +3,13 @@
 import json
 import logging
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Iterator
 
 from daily_news.config import settings
-from daily_news.models import RankedArticle, NewsDigest, CollectionStats, Region, Category
+from daily_news.models import Category, CollectionStats, RankedArticle, Region
 
 logger = logging.getLogger(__name__)
 
@@ -145,9 +145,7 @@ class NewsDatabase:
             conn.commit()
             logger.info(f"Database initialized at {self.db_path}")
 
-    def save_articles(
-        self, articles: list[RankedArticle], digest_date: date | None = None
-    ) -> int:
+    def save_articles(self, articles: list[RankedArticle], digest_date: date | None = None) -> int:
         """Save articles to database.
 
         Args:

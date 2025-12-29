@@ -119,7 +119,7 @@ class ClaudeRanker:
 Title: {article.title}
 Source: {article.source_name} ({article.source_region.value})
 Category: {article.source_category.value}
-Description: {article.description[:200] if article.description else 'N/A'}
+Description: {article.description[:200] if article.description else "N/A"}
 """
 
         return f"""You are an expert news editor ranking stories for a world news digest for a reader in New York City.

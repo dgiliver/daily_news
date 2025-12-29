@@ -1,14 +1,13 @@
 """Tests for data models."""
 
 import pytest
-from datetime import datetime
 
 from daily_news.models import (
-    RawArticle,
+    Category,
     ProcessedArticle,
     RankedArticle,
+    RawArticle,
     Region,
-    Category,
 )
 
 

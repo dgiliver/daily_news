@@ -1,10 +1,11 @@
 """Tests for storage module."""
 
-import pytest
-from datetime import datetime, date
+from datetime import date, datetime
 from pathlib import Path
 
-from daily_news.models import RankedArticle, CollectionStats, Region, Category
+import pytest
+
+from daily_news.models import Category, CollectionStats, RankedArticle, Region
 from daily_news.storage import NewsDatabase
 
 

@@ -1,9 +1,8 @@
 """Tests for processing modules."""
 
-import pytest
 from datetime import datetime
 
-from daily_news.models import ProcessedArticle, Region, Category
+from daily_news.models import Category, ProcessedArticle, Region
 from daily_news.processing.deduplicator import ArticleDeduplicator
 
 

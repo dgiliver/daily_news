@@ -17,20 +17,20 @@ import asyncio
 import logging
 import sys
 import time
-from datetime import datetime, date
+from datetime import date, datetime
 
 from dotenv import load_dotenv
 
 # Load environment variables before importing config
 load_dotenv()
 
-from daily_news.config import settings
-from daily_news.sources import load_sources
 from daily_news.collectors import RSSCollector
-from daily_news.processing import TranslationService, ArticleDeduplicator, ClaudeRanker
-from daily_news.storage import NewsDatabase
+from daily_news.config import settings
 from daily_news.delivery import EmailDelivery, SMSDelivery
-from daily_news.models import NewsDigest, CollectionStats, RankedArticle
+from daily_news.models import CollectionStats, NewsDigest, RankedArticle
+from daily_news.processing import ArticleDeduplicator, ClaudeRanker, TranslationService
+from daily_news.sources import load_sources
+from daily_news.storage import NewsDatabase
 
 # Configure logging
 logging.basicConfig(
@@ -63,7 +63,7 @@ class NewsPipeline:
         raw_articles = await collector.collect_all(sources)
 
         self.stats.articles_collected = len(raw_articles)
-        self.stats.sources_succeeded = len(set(a.source_name for a in raw_articles))
+        self.stats.sources_succeeded = len({a.source_name for a in raw_articles})
 
         logger.info(
             f"Collected {len(raw_articles)} articles from "
@@ -90,9 +90,7 @@ class NewsPipeline:
         unique = deduplicator.deduplicate(processed_articles)
 
         self.stats.articles_after_dedup = len(unique)
-        logger.info(
-            f"Deduplication: {len(processed_articles)} -> {len(unique)} articles"
-        )
+        logger.info(f"Deduplication: {len(processed_articles)} -> {len(unique)} articles")
 
         return unique
 
@@ -207,7 +205,9 @@ class NewsPipeline:
         logger.info("=" * 50)
         logger.info("Pipeline Complete!")
         logger.info(f"Duration: {duration:.1f}s")
-        logger.info(f"Articles: {self.stats.articles_collected} collected -> {self.stats.articles_after_dedup} unique")
+        logger.info(
+            f"Articles: {self.stats.articles_collected} collected -> {self.stats.articles_after_dedup} unique"
+        )
         logger.info(f"Top story: {ranked[0].title if ranked else 'None'}")
         logger.info("=" * 50)
 
@@ -232,7 +232,8 @@ async def main():
         help="Skip email/SMS delivery (for testing)",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Enable verbose logging",
     )
@@ -279,11 +280,11 @@ async def main():
         elif args.command == "stats":
             db = NewsDatabase()
             stats = db.get_stats()
-            print(f"\nDatabase Statistics (last 30 days):")
+            print("\nDatabase Statistics (last 30 days):")
             print(f"  Total articles: {stats['total_articles']:,}")
             print(f"  Collection runs: {stats['collection_runs']}")
-            print(f"\nArticles by region:")
-            for region, count in sorted(stats['articles_by_region'].items(), key=lambda x: -x[1]):
+            print("\nArticles by region:")
+            for region, count in sorted(stats["articles_by_region"].items(), key=lambda x: -x[1]):
                 print(f"  {region}: {count}")
 
     except Exception as e:

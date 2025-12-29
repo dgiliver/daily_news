@@ -1,16 +1,15 @@
 """Command-line interface for Daily News Aggregator."""
 
-from datetime import datetime, timedelta, date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 
-from daily_news.config import settings
-from daily_news.storage import NewsDatabase
 from daily_news.sources import load_sources
+from daily_news.storage import NewsDatabase
 
 app = typer.Typer(
     name="daily-news",
@@ -66,9 +65,7 @@ def search(
 
 @app.command()
 def digest(
-    date_str: str = typer.Option(
-        None, "--date", "-d", help="Date (YYYY-MM-DD), defaults to today"
-    ),
+    date_str: str = typer.Option(None, "--date", "-d", help="Date (YYYY-MM-DD), defaults to today"),
     limit: int = typer.Option(15, "--limit", "-l", help="Number of stories"),
 ) -> None:
     """Show the digest for a specific date."""
@@ -177,9 +174,7 @@ def stats(
         table.add_column("Region", width=20)
         table.add_column("Count", justify="right")
 
-        for region, count in sorted(
-            stats_data["articles_by_region"].items(), key=lambda x: -x[1]
-        ):
+        for region, count in sorted(stats_data["articles_by_region"].items(), key=lambda x: -x[1]):
             table.add_row(region, str(count))
 
         console.print(table)
@@ -220,23 +215,39 @@ def export(
             }
             for a in articles
         ]
-        with open(output_path, "w") as f:
+        with output_path.open("w") as f:
             json.dump(data, f, indent=2)
 
     else:  # CSV
-        with open(output_path, "w", newline="") as f:
+        with output_path.open("w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow([
-                "id", "title", "url", "source", "region", "category",
-                "score", "collected_at", "description"
-            ])
+            writer.writerow(
+                [
+                    "id",
+                    "title",
+                    "url",
+                    "source",
+                    "region",
+                    "category",
+                    "score",
+                    "collected_at",
+                    "description",
+                ]
+            )
             for a in articles:
-                writer.writerow([
-                    a.id, a.title, str(a.url), a.source_name,
-                    a.source_region.value, a.source_category.value,
-                    a.significance_score, a.collected_at.isoformat(),
-                    a.description[:200] if a.description else "",
-                ])
+                writer.writerow(
+                    [
+                        a.id,
+                        a.title,
+                        str(a.url),
+                        a.source_name,
+                        a.source_region.value,
+                        a.source_category.value,
+                        a.significance_score,
+                        a.collected_at.isoformat(),
+                        a.description[:200] if a.description else "",
+                    ]
+                )
 
     console.print(f"[green]Exported {len(articles)} articles to {output_path}[/green]")
 

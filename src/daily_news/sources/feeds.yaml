@@ -1,5 +1,6 @@
 # Daily News Aggregator - RSS Feed Sources
 # 60+ sources organized by region and category
+# Last updated: 2024-12-29
 
 sources:
   # ============================================
@@ -19,10 +20,10 @@ sources:
     language: "en"
     priority: "high"
 
-  - name: "Associated Press"
+  - name: "AP News - World"
     region: "americas_us"
     category: "general"
-    url: "https://rsshub.app/apnews/topics/world-news"
+    url: "https://feedx.net/rss/ap-world.xml"
     language: "en"
     priority: "high"
 
@@ -33,24 +34,25 @@ sources:
     language: "en"
     priority: "high"
 
-  - name: "Reuters - World"
+  - name: "Reuters"
     region: "americas_us"
     category: "general"
-    url: "https://www.reutersagency.com/feed/?best-topics=world"
+    url: "https://www.reddit.com/r/worldnews/.rss"
+    language: "en"
+    priority: "high"
+    # Note: Using Reddit worldnews as Reuters killed their RSS
+
+  - name: "CBS News"
+    region: "americas_us"
+    category: "general"
+    url: "https://www.cbsnews.com/latest/rss/world"
     language: "en"
     priority: "high"
 
-  - name: "Wall Street Journal - World"
+  - name: "ABC News"
     region: "americas_us"
     category: "general"
-    url: "https://feeds.a]content.wsj.com/xml/rss/3_7085.xml"
-    language: "en"
-    priority: "high"
-
-  - name: "Politico"
-    region: "americas_us"
-    category: "politics"
-    url: "https://www.politico.com/rss/politicopicks.xml"
+    url: "https://abcnews.go.com/abcnews/internationalheadlines"
     language: "en"
     priority: "high"
 
@@ -82,10 +84,10 @@ sources:
     language: "en"
     priority: "medium"
 
-  - name: "USA Today"
+  - name: "Axios"
     region: "americas_us"
     category: "general"
-    url: "http://rssfeeds.usatoday.com/usatoday-NewsTopStories"
+    url: "https://www.axios.com/feeds/feed.rss"
     language: "en"
     priority: "medium"
 
@@ -106,10 +108,10 @@ sources:
     language: "es"
     priority: "high"
 
-  - name: "El Universal (Mexico)"
+  - name: "Infobae"
     region: "americas_latam"
     category: "general"
-    url: "https://www.eluniversal.com.mx/rss.xml"
+    url: "https://www.infobae.com/feeds/rss/"
     language: "es"
     priority: "high"
 
@@ -147,7 +149,7 @@ sources:
   - name: "BBC News - World"
     region: "europe"
     category: "general"
-    url: "http://feeds.bbci.co.uk/news/world/rss.xml"
+    url: "https://feeds.bbci.co.uk/news/world/rss.xml"
     language: "en"
     priority: "high"
 
@@ -214,10 +216,10 @@ sources:
     language: "en"
     priority: "medium"
 
-  - name: "Irish Times"
+  - name: "The Independent"
     region: "europe"
     category: "general"
-    url: "https://www.irishtimes.com/cmlink/the-irish-times-news-1.1319192"
+    url: "https://www.independent.co.uk/news/world/rss"
     language: "en"
     priority: "medium"
 
@@ -245,10 +247,10 @@ sources:
     language: "en"
     priority: "high"
 
-  - name: "The Hindu"
+  - name: "NDTV India"
     region: "asia_pacific"
     category: "general"
-    url: "https://www.thehindu.com/news/international/feeder/default.rss"
+    url: "https://feeds.feedburner.com/ndtvnews-world-news"
     language: "en"
     priority: "high"
 
@@ -266,10 +268,10 @@ sources:
     language: "en"
     priority: "medium"
 
-  - name: "Korea Herald"
+  - name: "Yonhap News (Korea)"
     region: "asia_pacific"
     category: "general"
-    url: "http://www.koreaherald.com/rss/020100000000.xml"
+    url: "https://en.yna.co.kr/RSS/news.xml"
     language: "en"
     priority: "medium"
 
@@ -311,19 +313,12 @@ sources:
     language: "en"
     priority: "high"
 
-  - name: "Arab News"
+  - name: "Middle East Eye"
     region: "middle_east"
     category: "general"
-    url: "https://www.arabnews.com/rss.xml"
+    url: "https://www.middleeasteye.net/rss"
     language: "en"
-    priority: "medium"
-
-  - name: "The National (UAE)"
-    region: "middle_east"
-    category: "general"
-    url: "https://www.thenationalnews.com/arc/outboundfeeds/rss/"
-    language: "en"
-    priority: "medium"
+    priority: "high"
 
   - name: "Jerusalem Post"
     region: "middle_east"
@@ -332,12 +327,19 @@ sources:
     language: "en"
     priority: "medium"
 
-  - name: "Daily Star Lebanon"
+  - name: "Gulf News"
     region: "middle_east"
     category: "general"
-    url: "https://www.dailystar.com.lb/RSS.aspx?cat=1"
+    url: "https://gulfnews.com/rss/uae"
     language: "en"
-    priority: "low"
+    priority: "medium"
+
+  - name: "Times of Israel"
+    region: "middle_east"
+    category: "general"
+    url: "https://www.timesofisrael.com/feed/"
+    language: "en"
+    priority: "medium"
 
   # ============================================
   # AFRICA (5 sources)
@@ -349,12 +351,12 @@ sources:
     language: "en"
     priority: "high"
 
-  - name: "Daily Nation (Kenya)"
+  - name: "Africa News"
     region: "africa"
     category: "general"
-    url: "https://nation.africa/kenya/rss"
+    url: "https://www.africanews.com/feed/"
     language: "en"
-    priority: "medium"
+    priority: "high"
 
   - name: "Mail & Guardian (South Africa)"
     region: "africa"
@@ -370,10 +372,10 @@ sources:
     language: "en"
     priority: "medium"
 
-  - name: "News24 (South Africa)"
+  - name: "The East African"
     region: "africa"
     category: "general"
-    url: "https://feeds.news24.com/articles/news24/TopStories/rss"
+    url: "https://www.theeastafrican.co.ke/tea/rss"
     language: "en"
     priority: "medium"
 
@@ -387,24 +389,24 @@ sources:
     language: "en"
     priority: "high"
 
-  - name: "Times Union (Albany)"
+  - name: "NY Post"
     region: "local_ny"
     category: "local"
-    url: "https://www.timesunion.com/search/?action=GetFeed&channel=news&pubDate=true"
+    url: "https://nypost.com/feed/"
     language: "en"
-    priority: "medium"
-
-  - name: "City & State NY"
-    region: "local_ny"
-    category: "local"
-    url: "https://www.cityandstateny.com/rss/"
-    language: "en"
-    priority: "medium"
+    priority: "high"
 
   - name: "amNY"
     region: "local_ny"
     category: "local"
     url: "https://www.amny.com/feed/"
+    language: "en"
+    priority: "medium"
+
+  - name: "Spectrum News NY1"
+    region: "local_ny"
+    category: "local"
+    url: "https://spectrumlocalnews.com/nys/central-ny.rss"
     language: "en"
     priority: "medium"
 
@@ -470,10 +472,10 @@ sources:
   # ============================================
   # TOPIC: ECONOMY/FINANCE (additional)
   # ============================================
-  - name: "Reuters Business"
+  - name: "Yahoo Finance"
     region: "global"
     category: "economy"
-    url: "https://www.reutersagency.com/feed/?best-topics=business-finance"
+    url: "https://finance.yahoo.com/news/rssindex"
     language: "en"
     priority: "high"
 
@@ -481,5 +483,12 @@ sources:
     region: "global"
     category: "economy"
     url: "https://feeds.marketwatch.com/marketwatch/topstories/"
+    language: "en"
+    priority: "medium"
+
+  - name: "Investopedia"
+    region: "global"
+    category: "economy"
+    url: "https://www.investopedia.com/feedbuilder/feed/getfeed?feedName=rss_headline"
     language: "en"
     priority: "medium"

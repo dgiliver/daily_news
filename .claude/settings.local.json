@@ -4,7 +4,16 @@
       "Bash(cat:*)",
       "Bash(pip install:*)",
       "Bash(python:*)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Bash(git pull:*)",
+      "Bash(git push:*)",
+      "Bash(detect-secrets scan:*)",
+      "Bash(ruff check:*)",
+      "Bash(ruff format:*)",
+      "Bash(pre-commit install)",
+      "Bash(pre-commit install:*)",
+      "Bash(pre-commit run:*)",
+      "Bash(git add:*)"
     ]
   }
 }

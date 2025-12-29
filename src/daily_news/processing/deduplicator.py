@@ -46,9 +46,6 @@ class ArticleDeduplicator:
         if not settings.enable_deduplication:
             return articles
 
-        # Priority ordering for sources (high > medium > low)
-        priority_order = {"high": 0, "medium": 1, "low": 2}
-
         # Cluster similar articles
         clusters: list[list[T]] = []
 
@@ -71,9 +68,7 @@ class ArticleDeduplicator:
             else:
                 # For now, just keep the first one (could enhance with priority logic)
                 deduplicated.append(cluster[0])
-                logger.debug(
-                    f"Removed {len(cluster) - 1} duplicates of: {cluster[0].title[:50]}"
-                )
+                logger.debug(f"Removed {len(cluster) - 1} duplicates of: {cluster[0].title[:50]}")
 
         removed_count = len(articles) - len(deduplicated)
         if removed_count > 0:

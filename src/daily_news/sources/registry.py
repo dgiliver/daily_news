@@ -4,7 +4,7 @@ from pathlib import Path
 
 import yaml
 
-from daily_news.models import SourceConfig, Region, Category
+from daily_news.models import Category, Region, SourceConfig
 
 
 def load_sources(feeds_path: Path | None = None) -> list[SourceConfig]:
@@ -12,7 +12,7 @@ def load_sources(feeds_path: Path | None = None) -> list[SourceConfig]:
     if feeds_path is None:
         feeds_path = Path(__file__).parent / "feeds.yaml"
 
-    with open(feeds_path) as f:
+    with Path(feeds_path).open() as f:
         data = yaml.safe_load(f)
 
     sources = []
@@ -36,30 +36,22 @@ def load_sources(feeds_path: Path | None = None) -> list[SourceConfig]:
     return sources
 
 
-def get_sources_by_region(
-    sources: list[SourceConfig], region: Region
-) -> list[SourceConfig]:
+def get_sources_by_region(sources: list[SourceConfig], region: Region) -> list[SourceConfig]:
     """Filter sources by region."""
     return [s for s in sources if s.region == region]
 
 
-def get_sources_by_category(
-    sources: list[SourceConfig], category: Category
-) -> list[SourceConfig]:
+def get_sources_by_category(sources: list[SourceConfig], category: Category) -> list[SourceConfig]:
     """Filter sources by category."""
     return [s for s in sources if s.category == category]
 
 
-def get_sources_by_priority(
-    sources: list[SourceConfig], priority: str
-) -> list[SourceConfig]:
+def get_sources_by_priority(sources: list[SourceConfig], priority: str) -> list[SourceConfig]:
     """Filter sources by priority level."""
     return [s for s in sources if s.priority == priority]
 
 
-def get_sources_by_language(
-    sources: list[SourceConfig], language: str
-) -> list[SourceConfig]:
+def get_sources_by_language(sources: list[SourceConfig], language: str) -> list[SourceConfig]:
     """Filter sources by language."""
     return [s for s in sources if s.language == language]
 

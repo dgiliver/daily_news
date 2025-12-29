@@ -3,6 +3,7 @@
 import logging
 import smtplib
 from email.mime.text import MIMEText
+from typing import ClassVar
 
 from daily_news.config import settings
 from daily_news.models import NewsDigest
@@ -17,7 +18,7 @@ class SMSDelivery:
     SMTP_PORT = 587
 
     # Common US carrier gateways
-    CARRIER_GATEWAYS = {
+    CARRIER_GATEWAYS: ClassVar[dict[str, str]] = {
         "att": "txt.att.net",
         "verizon": "vtext.com",
         "tmobile": "tmomail.net",
@@ -99,7 +100,7 @@ class SMSDelivery:
 
         return "\n".join(lines)
 
-    def send_breaking_alert(self, headline: str, url: str) -> bool:
+    def send_breaking_alert(self, headline: str, _url: str) -> bool:
         """Send a breaking news alert.
 
         Args:

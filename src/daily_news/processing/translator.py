@@ -1,13 +1,12 @@
 """Translation service for non-English articles."""
 
 import logging
-from functools import lru_cache
 
 from deep_translator import GoogleTranslator
 from deep_translator.exceptions import TranslationNotFound
 
 from daily_news.config import settings
-from daily_news.models import RawArticle, ProcessedArticle
+from daily_news.models import ProcessedArticle, RawArticle
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ class TranslationService:
 
         try:
             translator = GoogleTranslator(source=source_language, target=self.target)
-            translated = translator.translate(text)
+            translated: str = translator.translate(text)
 
             if translated:
                 self._cache[cache_key] = translated
@@ -68,9 +67,7 @@ class TranslationService:
         translated_title = self.translate_text(article.title, article.language)
         translated_description = None
         if article.description:
-            translated_description = self.translate_text(
-                article.description, article.language
-            )
+            translated_description = self.translate_text(article.description, article.language)
 
         return ProcessedArticle.from_raw(
             article,

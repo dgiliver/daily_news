@@ -1,16 +1,17 @@
 """Pytest fixtures for tests."""
 
-import pytest
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import pytest
 
 from daily_news.models import (
-    RawArticle,
+    Category,
     ProcessedArticle,
     RankedArticle,
-    SourceConfig,
+    RawArticle,
     Region,
-    Category,
+    SourceConfig,
 )
 
 
