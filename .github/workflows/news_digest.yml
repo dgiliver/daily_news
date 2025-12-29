@@ -1,0 +1,94 @@
+name: Daily News Digest
+
+on:
+  schedule:
+    # Run at 5 AM UTC (12 AM ET / 1 AM ET during DST)
+    # This gives ~4 hours buffer before 9 AM delivery target
+    - cron: '0 5 * * *'
+  workflow_dispatch:  # Manual trigger for testing
+    inputs:
+      skip_delivery:
+        description: 'Skip email/SMS delivery'
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  collect-and-deliver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45  # Well under 6-hour limit
+
+    # Permissions for committing DB back to repo
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run full news pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
+          SMS_RECIPIENTS: ${{ secrets.SMS_RECIPIENTS }}
+          SMS_CARRIER_GATEWAY: ${{ secrets.SMS_CARRIER_GATEWAY || 'txt.att.net' }}
+        run: |
+          if [ "${{ github.event.inputs.skip_delivery }}" = "true" ]; then
+            python main.py run --skip-delivery
+          else
+            python main.py run
+          fi
+
+      - name: Commit database updates
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Create data directory if it doesn't exist
+          mkdir -p data
+
+          # Add database file
+          git add data/news_archive.db || true
+
+          # Only commit if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "Update news archive - $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          else
+            echo "No database changes to commit"
+          fi
+
+      - name: Generate summary
+        run: |
+          echo "## Daily News Digest Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python main.py stats >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Stats unavailable" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload logs as artifact (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: error-logs-${{ github.run_id }}
+          path: |
+            *.log
+            data/*.log
+          retention-days: 7

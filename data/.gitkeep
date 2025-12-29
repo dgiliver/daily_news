@@ -1,0 +1,2 @@
+# This file ensures the data directory is tracked by git.
+# The news_archive.db will be committed here after the first run.
