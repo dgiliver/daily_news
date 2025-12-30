@@ -17,12 +17,12 @@ class SMSDelivery:
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587
 
-    # Common US carrier gateways
-    CARRIER_GATEWAYS: ClassVar[dict[str, str]] = {
-        "att": "txt.att.net",
-        "verizon": "vtext.com",
-        "tmobile": "tmomail.net",
-        "sprint": "messaging.sprintpcs.com",
+    # Common US carrier gateways (MMS gateways are more reliable)
+    CARRIER_GATEWAYS: ClassVar[dict[str, dict[str, str]]] = {
+        "att": {"sms": "txt.att.net", "mms": "mms.att.net"},
+        "verizon": {"sms": "vtext.com", "mms": "vzwpix.com"},
+        "tmobile": {"sms": "tmomail.net", "mms": "tmomail.net"},
+        "sprint": {"sms": "messaging.sprintpcs.com", "mms": "pm.sprint.com"},
     }
 
     def __init__(self):
@@ -32,6 +32,9 @@ class SMSDelivery:
         self.password = settings.gmail_app_password
         self.gateway = settings.sms_carrier_gateway
         self.recipients = settings.sms_recipient_list
+
+        # Try MMS gateway if SMS gateway fails (more reliable for AT&T)
+        self.fallback_gateways = ["mms.att.net", "txt.att.net"]
 
     def send_headlines(self, digest: NewsDigest) -> bool:
         """Send top headlines via SMS.
@@ -50,8 +53,20 @@ class SMSDelivery:
         success = True
 
         for phone in self.recipients:
-            sms_email = f"{phone}@{self.gateway}"
-            if not self._send_single_sms(sms_email, message):
+            sent = False
+            # Try primary gateway first, then fallbacks
+            gateways_to_try = [self.gateway] + [
+                g for g in self.fallback_gateways if g != self.gateway
+            ]
+
+            for gateway in gateways_to_try:
+                sms_email = f"{phone}@{gateway}"
+                if self._send_single_sms(sms_email, message):
+                    sent = True
+                    break
+                logger.warning(f"Gateway {gateway} failed, trying next...")
+
+            if not sent:
                 success = False
 
         return success

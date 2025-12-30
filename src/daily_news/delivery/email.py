@@ -107,24 +107,32 @@ class EmailDelivery:
         stories_html = ""
         for i, article in enumerate(digest.top_stories, 1):
             region_badge = self._get_region_badge(article.source_region.value)
-            category_badge = self._get_category_badge(article.source_category.value)
+            # Use reader-friendly URL if available
+            reader_url = self._get_reader_url(str(article.url))
+            description = article.description[:250] if article.description else ""
 
             stories_html += f"""
             <tr>
-                <td style="padding: 15px 0; border-bottom: 1px solid #eee;">
-                    <div style="font-size: 11px; color: #666; margin-bottom: 5px;">
-                        {region_badge} {category_badge}
-                        <span style="float: right;">Score: {article.significance_score:.0f}/100</span>
-                    </div>
-                    <a href="{article.url}" style="font-size: 16px; color: #1a0dab; text-decoration: none; font-weight: 500;">
-                        {i}. {article.title}
-                    </a>
-                    <div style="font-size: 13px; color: #545454; margin-top: 5px;">
-                        {article.description[:200]}{"..." if len(article.description) > 200 else ""}
-                    </div>
-                    <div style="font-size: 12px; color: #006621; margin-top: 5px;">
-                        {article.source_name}
-                    </div>
+                <td style="padding: 20px 24px; border-bottom: 1px solid #e8e8e8;">
+                    <table style="width: 100%;" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td style="vertical-align: top; width: 36px;">
+                                <div style="background: #f0f0f0; color: #666; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-size: 13px; font-weight: 600;">{i}</div>
+                            </td>
+                            <td style="vertical-align: top; padding-left: 12px;">
+                                <div style="margin-bottom: 8px;">
+                                    {region_badge}
+                                    <span style="color: #888; font-size: 12px; margin-left: 8px;">{article.source_name}</span>
+                                </div>
+                                <a href="{reader_url}" style="font-size: 17px; color: #1a1a1a; text-decoration: none; font-weight: 600; line-height: 1.3; display: block;">
+                                    {article.title}
+                                </a>
+                                <p style="font-size: 14px; color: #555; margin: 10px 0 0 0; line-height: 1.5;">
+                                    {description}{"..." if len(article.description or "") > 250 else ""}
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
             """
@@ -136,54 +144,114 @@ class EmailDelivery:
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-                <h1 style="margin: 0; font-size: 24px;">World News Digest</h1>
-                <p style="margin: 5px 0 0 0; opacity: 0.9;">{digest.date.strftime("%B %d, %Y")}</p>
-            </div>
+        <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px 0;">
+                <tr>
+                    <td align="center">
+                        <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
+                            <!-- Header -->
+                            <tr>
+                                <td style="background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%); padding: 32px 24px; border-radius: 12px 12px 0 0;">
+                                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white; letter-spacing: -0.5px;">World News Digest</h1>
+                                    <p style="margin: 8px 0 0 0; font-size: 15px; color: rgba(255,255,255,0.8);">{digest.date.strftime("%A, %B %d, %Y")}</p>
+                                </td>
+                            </tr>
 
-            <div style="background: #f8f9fa; padding: 15px; border-left: 1px solid #ddd; border-right: 1px solid #ddd;">
-                <strong>{len(digest.top_stories)} Top Stories</strong> |
-                Sources: {digest.collection_stats.sources_succeeded}/{digest.collection_stats.sources_attempted} |
-                Articles: {digest.collection_stats.articles_after_dedup}
-            </div>
+                            <!-- Stats Bar -->
+                            <tr>
+                                <td style="background: #fafafa; padding: 16px 24px; border-left: 1px solid #e8e8e8; border-right: 1px solid #e8e8e8;">
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="font-size: 14px; color: #444;">
+                                                <strong style="color: #1a1a1a;">{len(digest.top_stories)} Top Stories</strong>
+                                                <span style="color: #999; margin: 0 8px;">•</span>
+                                                <span style="color: #666;">Sources: {digest.collection_stats.sources_succeeded}/{digest.collection_stats.sources_attempted}</span>
+                                                <span style="color: #999; margin: 0 8px;">•</span>
+                                                <span style="color: #666;">Articles: {digest.collection_stats.articles_after_dedup}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
 
-            <table style="width: 100%; border-collapse: collapse; background: white; border: 1px solid #ddd;">
-                {stories_html}
+                            <!-- Stories -->
+                            <tr>
+                                <td style="background: white; border-left: 1px solid #e8e8e8; border-right: 1px solid #e8e8e8;">
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        {stories_html}
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background: #fafafa; padding: 20px 24px; text-align: center; border: 1px solid #e8e8e8; border-top: none; border-radius: 0 0 12px 12px;">
+                                    <p style="margin: 0; font-size: 13px; color: #888;">
+                                        Generated by Daily News Aggregator
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
             </table>
-
-            <div style="background: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px;">
-                Generated by Daily News Aggregator<br>
-                <a href="https://github.com" style="color: #666;">Unsubscribe</a>
-            </div>
         </body>
         </html>
         """
 
+    def _get_reader_url(self, url: str) -> str:
+        """Convert URL to reader-friendly version that bypasses paywalls.
+
+        Uses archive.today or similar services for paywalled sites.
+        """
+        # Sites known to have paywalls
+        paywall_domains = {
+            "nytimes.com": True,
+            "washingtonpost.com": True,
+            "wsj.com": True,
+            "ft.com": True,
+            "economist.com": True,
+            "bloomberg.com": True,
+            "theatlantic.com": True,
+            "newyorker.com": True,
+            "wired.com": True,
+            "thetimes.co.uk": True,
+            "telegraph.co.uk": True,
+            "haaretz.com": True,
+            "barrons.com": True,
+            "foreignpolicy.com": True,
+        }
+
+        # Check if URL is from a paywalled site
+        for domain in paywall_domains:
+            if domain in url:
+                # Use archive.today for paywall bypass
+                return f"https://archive.today/newest/{url}"
+
+        return url
+
     def _get_region_badge(self, region: str) -> str:
         """Get HTML badge for region."""
         colors = {
-            "americas_us": "#3498db",
-            "americas_latam": "#9b59b6",
-            "europe": "#2ecc71",
-            "asia_pacific": "#e74c3c",
-            "middle_east": "#f39c12",
-            "africa": "#1abc9c",
-            "local_ny": "#e67e22",
-            "global": "#95a5a6",
+            "americas_us": "#2563eb",
+            "americas_latam": "#7c3aed",
+            "europe": "#059669",
+            "asia_pacific": "#dc2626",
+            "middle_east": "#d97706",
+            "africa": "#0891b2",
+            "local_ny": "#ea580c",
+            "global": "#6b7280",
         }
-        color = colors.get(region, "#95a5a6")
-        label = region.replace("_", " ").title()
-        return f'<span style="background: {color}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">{label}</span>'
-
-    def _get_category_badge(self, category: str) -> str:
-        """Get HTML badge for category."""
-        colors = {
-            "general": "#7f8c8d",
-            "politics": "#c0392b",
-            "economy": "#27ae60",
-            "technology": "#8e44ad",
-            "local": "#d35400",
+        labels = {
+            "americas_us": "US",
+            "americas_latam": "Latin America",
+            "europe": "Europe",
+            "asia_pacific": "Asia Pacific",
+            "middle_east": "Middle East",
+            "africa": "Africa",
+            "local_ny": "NYC",
+            "global": "Global",
         }
-        color = colors.get(category, "#7f8c8d")
-        return f'<span style="background: {color}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">{category.title()}</span>'
+        color = colors.get(region, "#6b7280")
+        label = labels.get(region, region.replace("_", " ").title())
+        return f'<span style="background: {color}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; letter-spacing: 0.3px;">{label}</span>'
