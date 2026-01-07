@@ -23,34 +23,34 @@ class TranslationService:
 
         Args:
             text: Text to translate
-            source_language: Source language code (e.g., 'fr', 'de')
+            source_language: Source language code (e.g., 'fr', 'de') or 'auto' for detection
 
         Returns:
             Translated text, or original if translation fails
         """
+        # Skip if empty or already target language
         if not text or source_language == self.target:
             return text
 
-        # Check cache first
-        cache_key = f"{source_language}:{hash(text)}"
+        # Check cache first (use auto for cache key since we always auto-detect now)
+        cache_key = f"auto:{hash(text)}"
         if cache_key in self._cache:
             return self._cache[cache_key]
 
+        # Translate with auto-detection for better accuracy
+        result = text
         try:
-            translator = GoogleTranslator(source=source_language, target=self.target)
+            translator = GoogleTranslator(source="auto", target=self.target)
             translated: str = translator.translate(text)
-
             if translated:
                 self._cache[cache_key] = translated
-                return translated
-            return text
-
+                result = translated
         except TranslationNotFound:
-            logger.warning(f"Translation not found for text in {source_language}")
-            return text
+            logger.warning(f"Translation not found for text (hint: {source_language})")
         except Exception as e:
-            logger.error(f"Translation error for {source_language}: {e}")
-            return text
+            logger.error(f"Translation error (hint: {source_language}): {e}")
+
+        return result
 
     def translate_article(self, article: RawArticle) -> ProcessedArticle:
         """Translate a raw article to English.

@@ -164,7 +164,7 @@ sources:
     region: "europe"
     category: "general"
     url: "https://www.spiegel.de/international/index.rss"
-    language: "de"
+    language: "en"
     priority: "high"
 
   - name: "El Pais"

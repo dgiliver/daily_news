@@ -4,6 +4,7 @@ import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from urllib.parse import quote
 
 from daily_news.config import settings
 from daily_news.models import NewsDigest
@@ -202,31 +203,30 @@ class EmailDelivery:
     def _get_reader_url(self, url: str) -> str:
         """Convert URL to reader-friendly version that bypasses paywalls.
 
-        Uses archive.today or similar services for paywalled sites.
+        Uses archive.ph for paywalled sites (more reliable than archive.today).
         """
-        # Sites known to have paywalls
-        paywall_domains = {
-            "nytimes.com": True,
-            "washingtonpost.com": True,
-            "wsj.com": True,
-            "ft.com": True,
-            "economist.com": True,
-            "bloomberg.com": True,
-            "theatlantic.com": True,
-            "newyorker.com": True,
-            "wired.com": True,
-            "thetimes.co.uk": True,
-            "telegraph.co.uk": True,
-            "haaretz.com": True,
-            "barrons.com": True,
-            "foreignpolicy.com": True,
-        }
+        paywall_domains = [
+            "nytimes.com",
+            "washingtonpost.com",
+            "wsj.com",
+            "ft.com",
+            "economist.com",
+            "bloomberg.com",
+            "theatlantic.com",
+            "newyorker.com",
+            "wired.com",
+            "thetimes.co.uk",
+            "telegraph.co.uk",
+            "haaretz.com",
+            "barrons.com",
+            "foreignpolicy.com",
+        ]
 
-        # Check if URL is from a paywalled site
         for domain in paywall_domains:
             if domain in url:
-                # Use archive.today for paywall bypass
-                return f"https://archive.today/newest/{url}"
+                # Use archive.ph with URL-encoded target (more reliable)
+                encoded_url = quote(url, safe="")
+                return f"https://archive.ph/newest/{encoded_url}"
 
         return url
 

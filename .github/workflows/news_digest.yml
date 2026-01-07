@@ -2,9 +2,8 @@ name: Daily News Digest
 
 on:
   schedule:
-    # Run at 5 AM UTC (12 AM ET / 1 AM ET during DST)
-    # This gives ~4 hours buffer before 9 AM delivery target
-    - cron: '0 5 * * *'
+    # Run at 12 PM UTC (7 AM EST / 8 AM EDT during DST)
+    - cron: '0 12 * * *'
   workflow_dispatch:  # Manual trigger for testing
     inputs:
       skip_delivery:
