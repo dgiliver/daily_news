@@ -149,6 +149,39 @@ class ArticleDeduplicator:
 
         return duplicates
 
+    def filter_similar_to_recent(self, articles: list[T], recent_titles: list[str]) -> list[T]:
+        """Filter out articles with titles similar to recently sent articles.
+
+        This prevents the same story from appearing in consecutive digests
+        even if the URL is different (e.g., different source covering same event).
+
+        Args:
+            articles: List of new articles to filter
+            recent_titles: Titles of articles sent in recent digests
+
+        Returns:
+            Articles that are not similar to recently sent ones
+        """
+        if not recent_titles:
+            return articles
+
+        filtered = []
+        for article in articles:
+            is_duplicate = False
+            for recent_title in recent_titles:
+                if self.is_similar(article.title, recent_title):
+                    logger.debug(f"Filtering similar to recent: {article.title[:50]}")
+                    is_duplicate = True
+                    break
+            if not is_duplicate:
+                filtered.append(article)
+
+        removed_count = len(articles) - len(filtered)
+        if removed_count > 0:
+            logger.info(f"Filtered {removed_count} articles similar to recently sent")
+
+        return filtered
+
 
 class SemanticDeduplicator:
     """Deduplicate articles using Claude AI for semantic understanding.

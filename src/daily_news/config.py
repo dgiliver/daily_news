@@ -59,6 +59,14 @@ class Settings(BaseSettings):
     )
     enable_deduplication: bool = Field(default=True, description="Enable duplicate article removal")
 
+    # Freshness Settings
+    max_article_age_hours: int = Field(
+        default=24, description="Maximum age of articles to include (hours)"
+    )
+    skip_previously_sent: bool = Field(
+        default=True, description="Skip articles already sent in previous digests"
+    )
+
     @property
     def email_recipient_list(self) -> list[str]:
         """Parse email recipients into a list."""

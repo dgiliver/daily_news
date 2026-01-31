@@ -3,7 +3,7 @@
 import asyncio
 import contextlib
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.utils import parsedate_to_datetime
 from typing import Any
 
@@ -148,6 +148,14 @@ class RSSCollector(BaseCollector):
             elif "published" in entry:
                 with contextlib.suppress(TypeError, ValueError):
                     published_at = parsedate_to_datetime(entry.published)
+
+            # Filter by article age (freshness check)
+            if published_at:
+                age = datetime.utcnow() - published_at
+                max_age = timedelta(hours=settings.max_article_age_hours)
+                if age > max_age:
+                    logger.debug(f"Skipping old article ({age}): {title[:50]}")
+                    return None
 
             # Extract image URL if available
             image_url = None

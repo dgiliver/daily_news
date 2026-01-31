@@ -75,6 +75,18 @@ class NewsPipeline:
             f"{self.stats.sources_succeeded}/{self.stats.sources_attempted} sources"
         )
 
+        # Filter out previously sent articles to avoid duplicate headlines across days
+        if settings.skip_previously_sent:
+            sent_ids = self.db.get_recently_sent_article_ids(hours=48)
+            before_count = len(raw_articles)
+
+            # Filter by ID (exact match for same URL/article)
+            raw_articles = [a for a in raw_articles if a.generate_id() not in sent_ids]
+
+            filtered_count = before_count - len(raw_articles)
+            if filtered_count > 0:
+                logger.info(f"Filtered {filtered_count} previously sent articles")
+
         return raw_articles
 
     def translate(self, raw_articles: list) -> list:
@@ -93,6 +105,11 @@ class NewsPipeline:
 
         deduplicator = ArticleDeduplicator()
         unique = deduplicator.deduplicate(processed_articles)
+
+        # Also filter out articles similar to recently sent ones
+        if settings.skip_previously_sent:
+            recent_titles = self.db.get_recently_sent_titles(hours=48)
+            unique = deduplicator.filter_similar_to_recent(unique, recent_titles)
 
         self.stats.articles_after_dedup = len(unique)
         logger.info(f"Deduplication: {len(processed_articles)} -> {len(unique)} articles")

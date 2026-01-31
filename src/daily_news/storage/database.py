@@ -373,6 +373,50 @@ class NewsDatabase:
                 "period_days": days,
             }
 
+    def get_recently_sent_article_ids(self, hours: int = 48) -> set[str]:
+        """Get IDs of articles sent in recent digests.
+
+        Args:
+            hours: Number of hours to look back
+
+        Returns:
+            Set of article IDs that were recently sent
+        """
+        since = datetime.utcnow() - timedelta(hours=hours)
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT id FROM articles
+                WHERE included_in_digest = TRUE AND collected_at > ?
+                """,
+                (since.isoformat(),),
+            )
+            return {row["id"] for row in cursor.fetchall()}
+
+    def get_recently_sent_titles(self, hours: int = 48) -> list[str]:
+        """Get titles of recently sent articles for similarity checking.
+
+        Args:
+            hours: Number of hours to look back
+
+        Returns:
+            List of article titles that were recently sent
+        """
+        since = datetime.utcnow() - timedelta(hours=hours)
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT title FROM articles
+                WHERE included_in_digest = TRUE AND collected_at > ?
+                """,
+                (since.isoformat(),),
+            )
+            return [row["title"] for row in cursor.fetchall()]
+
     def _row_to_article(self, row: sqlite3.Row) -> RankedArticle:
         """Convert database row to RankedArticle."""
         return RankedArticle(

@@ -4,6 +4,7 @@ import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from typing import ClassVar
 from urllib.parse import quote
 
 from daily_news.config import settings
@@ -200,35 +201,67 @@ class EmailDelivery:
         </html>
         """
 
+    # Expanded list of paywall domains
+    PAYWALL_DOMAINS: ClassVar[list[str]] = [
+        # Major US newspapers
+        "nytimes.com",
+        "washingtonpost.com",
+        "wsj.com",
+        "latimes.com",
+        "bostonglobe.com",
+        "sfchronicle.com",
+        "chicagotribune.com",
+        "inquirer.com",
+        "seattletimes.com",
+        "denverpost.com",
+        # Business/Financial
+        "ft.com",
+        "economist.com",
+        "bloomberg.com",
+        "barrons.com",
+        "fortune.com",
+        # Magazines
+        "theatlantic.com",
+        "newyorker.com",
+        "wired.com",
+        "foreignpolicy.com",
+        "foreignaffairs.com",
+        "harpers.org",
+        "vanityfair.com",
+        # UK publications
+        "thetimes.co.uk",
+        "telegraph.co.uk",
+        "spectator.co.uk",
+        # International
+        "haaretz.com",
+        "theglobeandmail.com",
+        "smh.com.au",
+        "theaustralian.com.au",
+        "nzherald.co.nz",
+        "scmp.com",
+        "japantimes.co.jp",
+        "straitstimes.com",
+    ]
+
     def _get_reader_url(self, url: str) -> str:
         """Convert URL to reader-friendly version that bypasses paywalls.
 
-        Uses archive.ph for paywalled sites (more reliable than archive.today).
+        Uses archive.ph as primary service for paywalled sites.
+        Falls back to original URL if not a known paywall domain.
         """
-        paywall_domains = [
-            "nytimes.com",
-            "washingtonpost.com",
-            "wsj.com",
-            "ft.com",
-            "economist.com",
-            "bloomberg.com",
-            "theatlantic.com",
-            "newyorker.com",
-            "wired.com",
-            "thetimes.co.uk",
-            "telegraph.co.uk",
-            "haaretz.com",
-            "barrons.com",
-            "foreignpolicy.com",
-        ]
+        # Check if this is a paywall domain
+        is_paywall = any(domain in url for domain in self.PAYWALL_DOMAINS)
+        if not is_paywall:
+            return url
 
-        for domain in paywall_domains:
-            if domain in url:
-                # Use archive.ph with URL-encoded target (more reliable)
-                encoded_url = quote(url, safe="")
-                return f"https://archive.ph/newest/{encoded_url}"
+        # Use archive.ph with URL-encoded target (most reliable)
+        encoded_url = quote(url, safe="")
 
-        return url
+        # Primary: archive.ph (preferred, most comprehensive)
+        # Alternative patterns if archive.ph is blocked:
+        # - https://archive.today/newest/{encoded_url}
+        # - https://12ft.io/{url}
+        return f"https://archive.ph/newest/{encoded_url}"
 
     def _get_region_badge(self, region: str) -> str:
         """Get HTML badge for region."""
