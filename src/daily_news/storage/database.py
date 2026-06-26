@@ -200,6 +200,35 @@ class NewsDatabase:
         logger.info(f"Saved {saved} articles to database")
         return saved
 
+    def prune_old_articles(self, days: int = 30, vacuum: bool = True) -> int:
+        """Delete articles older than ``days`` and reclaim disk space.
+
+        The archive only needs a short recent window (dedup looks back 48h);
+        unbounded growth pushed the SQLite file past GitHub's 100MB limit.
+        Deletes cascade to the FTS index via the ``articles_ad`` trigger. A
+        VACUUM is required to actually shrink the file on disk afterwards.
+
+        Args:
+            days: Retention window. Articles with ``collected_at`` older than
+                this are removed.
+            vacuum: Run VACUUM after deleting to reclaim freed pages.
+
+        Returns:
+            Number of articles deleted.
+        """
+        cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM articles WHERE collected_at < ?", (cutoff,))
+            deleted = cursor.rowcount
+            conn.commit()
+            if vacuum and deleted:
+                # VACUUM cannot run inside a transaction; switch to autocommit.
+                conn.isolation_level = None
+                conn.execute("VACUUM")
+        logger.info(f"Pruned {deleted} articles older than {days} days")
+        return deleted
+
     def save_collection_stats(self, stats: CollectionStats) -> None:
         """Save collection run statistics."""
         with self._get_connection() as conn:

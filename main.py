@@ -148,6 +148,12 @@ class NewsPipeline:
         self.stats.duration_seconds = time.time() - self.start_time
         self.db.save_collection_stats(self.stats)
 
+        # Keep the archive bounded so the SQLite file never exceeds GitHub's
+        # 100MB limit (the DB is persisted as a release asset, not committed).
+        pruned = self.db.prune_old_articles(days=30)
+        if pruned:
+            logger.info(f"Pruned {pruned} old articles from archive")
+
     def semantic_dedup(self, ranked_articles: list[RankedArticle]) -> list[RankedArticle]:
         """Remove semantically duplicate articles from top stories.
 

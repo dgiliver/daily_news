@@ -53,4 +53,6 @@ dmypy.json
 Thumbs.db
 
 # Project specific
-# Note: news_archive.db is NOT ignored - we commit it for persistence
+# DB is persisted as a GitHub Release asset (db-latest), NOT committed —
+# it exceeds GitHub's 100MB per-file limit. See .github/workflows/news_digest.yml
+data/news_archive.db

@@ -41,6 +41,14 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
 
+      - name: Restore news archive DB
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p data
+          gh release download db-latest --pattern news_archive.db --dir data --clobber \
+            || echo "No existing DB asset — starting with a fresh database"
+
       - name: Run full news pipeline
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -56,24 +64,17 @@ jobs:
             python main.py run
           fi
 
-      - name: Commit database updates
+      - name: Save news archive DB
+        if: always()  # persist collected data even if delivery failed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-
-          # Create data directory if it doesn't exist
-          mkdir -p data
-
-          # Add database file
-          git add data/news_archive.db || true
-
-          # Only commit if there are changes
-          if ! git diff --staged --quiet; then
-            git commit -m "Update news archive - $(date -u '+%Y-%m-%d %H:%M UTC')"
-            git push
-          else
-            echo "No database changes to commit"
-          fi
+          [ -f data/news_archive.db ] || { echo "No DB to save"; exit 0; }
+          # Ensure the rolling-DB release exists (idempotent), then replace the asset.
+          gh release view db-latest >/dev/null 2>&1 \
+            || gh release create db-latest --title "DB latest" \
+                 --notes "Rolling news archive DB (do not delete)"
+          gh release upload db-latest data/news_archive.db --clobber
 
       - name: Generate summary
         run: |
